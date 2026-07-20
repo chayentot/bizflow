@@ -1,0 +1,27 @@
+BIZFLOW — GITHUB UPLOAD
+
+Upload the CONTENTS of this extracted folder to your GitHub repository:
+- src
+- supabase
+- package.json
+- package-lock.json
+- tsconfig.json
+- next-env.d.ts
+- postcss.config.mjs
+- eslint.config.mjs
+- .gitignore
+- .env.example
+- README.md
+
+Do not upload the outer Windows extraction folder itself as a nested folder.
+
+SUPABASE SETUP
+1. Create a Supabase project.
+2. Open SQL Editor.
+3. Run supabase/schema.sql.
+4. Copy .env.example to .env.local.
+5. Add your Supabase project URL and publishable key.
+
+LOCAL RUN
+npm install
+npm run dev
