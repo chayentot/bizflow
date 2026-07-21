@@ -1,0 +1,37 @@
+BIZFLOW DATABASE REPAIR
+=======================
+
+This update fixes duplicate-policy errors such as:
+  policy "profiles_read_self" for table "profiles" already exists
+
+IMPORTANT
+---------
+This repair does not drop BizFlow tables or intentionally delete business records.
+Still create a Supabase backup before making a major database change.
+
+EXISTING BIZFLOW DATABASE
+-------------------------
+1. Upload this update to GitHub and commit it.
+2. In Supabase, open SQL Editor.
+3. Open and copy ONLY:
+     supabase/migrations/007_database_repair.sql
+4. Run the complete file once.
+5. Confirm the result says Success.
+6. Do not rerun schema.sql or migrations 002 through 006.
+
+NEW/FRESH SUPABASE PROJECT
+--------------------------
+Run only:
+  supabase/schema.sql
+
+The consolidated schema creates every BizFlow V3 table, index, function, trigger,
+and RLS policy in one script. It also refreshes policies safely when rerun.
+
+WHAT WAS FIXED
+--------------
+- Drops known policy names before recreating them.
+- Handles both space-style and underscore-style policy names from older builds.
+- Preserves existing tables and records.
+- Consolidates all V3 database modules into schema.sql.
+- Makes audit logging safer so a logging problem does not block normal saves.
+- Correctly resolves a payment's company through its invoice for audit records.

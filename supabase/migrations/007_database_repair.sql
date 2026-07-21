@@ -1,4 +1,4 @@
--- BizFlow consolidated database schema
+-- BizFlow migration 007: repair duplicate policies and consolidate database objects
 -- Safe for a new Supabase project and idempotent for an existing BizFlow database.
 -- Existing tables and business records are preserved. Policies/functions/triggers are refreshed.
 -- Always create a Supabase backup before a major database change.

@@ -75,3 +75,9 @@ The AI Assistant reads a compact, company-scoped snapshot through the authentica
 ## BizFlow V3 Enterprise
 
 V3 adds an executive dashboard, notifications, activity timelines, audit logging, a unified calendar, analytics, company settings, profile pages, and dark mode. Existing data is preserved. Run `supabase/migrations/006_v3_enterprise.sql` once after uploading the update.
+
+
+## Consolidated database setup
+
+For an existing BizFlow installation, run only `supabase/migrations/007_database_repair.sql`.
+For a fresh Supabase project, run only `supabase/schema.sql`. See `DATABASE-REPAIR-INSTRUCTIONS.txt`.
