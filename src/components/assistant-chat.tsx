@@ -14,7 +14,7 @@ const suggestions = [
 
 export function AssistantChat() {
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Hello! I can analyze the live data in your BizFlow workspace. Choose a suggestion or ask a business question." },
+    { role: "assistant", content: "Hello! I can analyze your live BizFlow data for free. On Vercel I use built-in business logic; when you run BizFlow locally, you can optionally connect Ollama." },
   ]);
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
@@ -84,7 +84,7 @@ export function AssistantChat() {
         </section>
         <section className="card text-sm text-slate-600">
           <h2 className="font-black text-slate-900">Privacy</h2>
-          <p className="mt-2 leading-6">The server sends a compact business snapshot—not your login credentials—to the configured AI provider. Avoid entering sensitive personal information in questions.</p>
+          <p className="mt-2 leading-6">Your Vercel deployment uses the built-in assistant and does not send business data to an external AI provider. Optional Ollama mode runs on your own computer.</p>
         </section>
       </aside>
     </div>

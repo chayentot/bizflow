@@ -1,0 +1,25 @@
+BIZFLOW FREE / LOCAL ASSISTANT
+
+This update removes the paid OpenAI dependency.
+
+VERCEL (recommended now)
+- No API key is required.
+- The assistant uses built-in business question handling.
+- Upload the files to GitHub and let Vercel redeploy.
+- You may delete OPENAI_API_KEY and OPENAI_MODEL from Vercel.
+
+OPTIONAL TRUE LOCAL AI WITH OLLAMA
+Ollama on your computer cannot be reached by Vercel's cloud servers.
+To use Ollama, run BizFlow locally on the same computer:
+
+1. Install Ollama from ollama.com.
+2. Run: ollama pull llama3.2:3b
+3. In .env.local add:
+   ASSISTANT_PROVIDER=ollama
+   OLLAMA_BASE_URL=http://127.0.0.1:11434
+   OLLAMA_MODEL=llama3.2:3b
+4. Run: npm install
+5. Run: npm run dev
+6. Open http://localhost:3000
+
+If Ollama is unavailable, BizFlow automatically falls back to the built-in assistant.
