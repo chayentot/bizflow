@@ -1,0 +1,8 @@
+BIZFLOW INVOICE UPGRADE
+
+1. Upload all files/folders in this package to the root of your GitHub repository.
+2. In Supabase SQL Editor, run: supabase/migrations/002_invoices.sql
+3. Commit the GitHub upload. Vercel will redeploy automatically.
+4. Open /invoices from the sidebar.
+
+Do not run the full schema.sql on your existing database; use only the migration above.

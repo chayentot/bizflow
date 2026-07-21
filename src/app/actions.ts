@@ -66,3 +66,82 @@ export async function createTransaction(formData: FormData) {
   if(error) redirect(`/transactions?error=${encodeURIComponent(error.message)}`); revalidatePath("/transactions"); revalidatePath("/dashboard");
 }
 export async function deleteTransaction(formData: FormData) { const ctx=await companyId(); await ctx.supabase.from("transactions").delete().eq("id",text(formData,"id")).eq("company_id",ctx.companyId); revalidatePath("/transactions"); revalidatePath("/dashboard"); }
+
+export async function createInvoice(formData: FormData) {
+  const ctx = await companyId();
+  const customerId = text(formData, "customer_id");
+  const description = text(formData, "description");
+  const quantity = Math.max(1, Number(text(formData, "quantity")) || 1);
+  const unitPrice = Math.max(0, Number(text(formData, "unit_price")) || 0);
+  const taxRate = Math.max(0, Number(text(formData, "tax_rate")) || 0);
+  const discount = Math.max(0, Number(text(formData, "discount")) || 0);
+  const subtotal = quantity * unitPrice;
+  const tax = subtotal * (taxRate / 100);
+  const total = Math.max(0, subtotal + tax - discount);
+  const invoiceNumber = `INV-${Date.now().toString().slice(-8)}`;
+
+  const { data: invoice, error } = await ctx.supabase.from("invoices").insert({
+    company_id: ctx.companyId,
+    customer_id: customerId,
+    invoice_number: invoiceNumber,
+    status: text(formData, "status") || "draft",
+    issue_date: text(formData, "issue_date"),
+    due_date: text(formData, "due_date"),
+    subtotal,
+    tax,
+    discount,
+    total,
+    notes: text(formData, "notes") || null,
+    created_by: ctx.user.id,
+  }).select("id").single();
+
+  if (error) redirect(`/invoices?error=${encodeURIComponent(error.message)}`);
+  const item = await ctx.supabase.from("invoice_items").insert({
+    invoice_id: invoice.id,
+    description,
+    quantity,
+    unit_price: unitPrice,
+    total: subtotal,
+  });
+  if (item.error) redirect(`/invoices?error=${encodeURIComponent(item.error.message)}`);
+  revalidatePath("/invoices"); revalidatePath("/dashboard"); revalidatePath("/reports");
+  redirect(`/invoices/${invoice.id}`);
+}
+
+export async function updateInvoiceStatus(formData: FormData) {
+  const ctx = await companyId();
+  const id = text(formData, "id");
+  await ctx.supabase.from("invoices").update({ status: text(formData, "status") }).eq("id", id).eq("company_id", ctx.companyId);
+  revalidatePath(`/invoices/${id}`); revalidatePath("/invoices"); revalidatePath("/dashboard");
+}
+
+export async function addPayment(formData: FormData) {
+  const ctx = await companyId();
+  const invoiceId = text(formData, "invoice_id");
+  const amount = Number(text(formData, "amount"));
+  const { error } = await ctx.supabase.from("payments").insert({
+    invoice_id: invoiceId,
+    amount,
+    payment_date: text(formData, "payment_date"),
+    payment_method: text(formData, "payment_method"),
+    reference: text(formData, "reference") || null,
+    notes: text(formData, "notes") || null,
+    created_by: ctx.user.id,
+  });
+  if (error) redirect(`/invoices/${invoiceId}?error=${encodeURIComponent(error.message)}`);
+
+  const { data: invoice } = await ctx.supabase.from("invoices").select("total").eq("id", invoiceId).eq("company_id", ctx.companyId).single();
+  const { data: payments } = await ctx.supabase.from("payments").select("amount").eq("invoice_id", invoiceId);
+  const paid = (payments ?? []).reduce((sum, p) => sum + Number(p.amount), 0);
+  if (invoice && paid >= Number(invoice.total)) {
+    await ctx.supabase.from("invoices").update({ status: "paid" }).eq("id", invoiceId).eq("company_id", ctx.companyId);
+  }
+  revalidatePath(`/invoices/${invoiceId}`); revalidatePath("/invoices"); revalidatePath("/dashboard"); revalidatePath("/reports");
+}
+
+export async function deleteInvoice(formData: FormData) {
+  const ctx = await companyId();
+  await ctx.supabase.from("invoices").delete().eq("id", text(formData, "id")).eq("company_id", ctx.companyId);
+  revalidatePath("/invoices"); revalidatePath("/dashboard"); revalidatePath("/reports");
+  redirect("/invoices");
+}
