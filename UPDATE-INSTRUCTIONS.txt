@@ -1,0 +1,12 @@
+BIZFLOW REPORTS UPDATE
+
+Upload these changed items to the same locations in your GitHub repository:
+
+1. src/app/reports/page.tsx  (new Reports page)
+2. src/components/shell.tsx (adds Reports to the sidebar)
+3. src/app/dashboard/page.tsx (updates dashboard message)
+4. README.md                (documents the feature)
+
+The full ZIP also contains the complete project. Do not upload package-lock.json.
+After committing the files, Vercel will deploy automatically.
+No new Supabase SQL is required for this Reports feature.

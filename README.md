@@ -11,6 +11,7 @@ A portfolio-ready multi-tenant business operations MVP built with Next.js and Su
 - Income and expense tracking
 - PostgreSQL Row Level Security
 - Responsive layout
+- Reports dashboard with six-month financial charts, profit margin, customer value, and task completion
 
 ## Setup
 1. Install Node.js 20.9 or newer.
