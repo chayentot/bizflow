@@ -1,0 +1,11 @@
+BIZFLOW AI ASSISTANT UPGRADE
+
+1. Upload all files to the root of your GitHub repository and commit.
+2. In Vercel, open Project Settings > Environment Variables.
+3. Add OPENAI_API_KEY with your OpenAI API key.
+4. Optional: add OPENAI_MODEL. The default is gpt-5-mini.
+5. Redeploy the project.
+6. Open AI Assistant in the sidebar and try a suggested question.
+
+No Supabase SQL migration is required.
+Keep OPENAI_API_KEY server-side. Never prefix it with NEXT_PUBLIC_.

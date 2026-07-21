@@ -60,3 +60,14 @@ The Employees module includes a team directory, departments, employment types, s
 ## UX polish upgrade
 
 This version adds double-submit protection, pending button states, a responsive mobile navigation drawer, active navigation highlighting, and a global loading skeleton. No new Supabase migration is required.
+
+## AI Assistant setup
+
+Add these Vercel environment variables and redeploy:
+
+```text
+OPENAI_API_KEY=your_openai_api_key
+OPENAI_MODEL=gpt-5-mini
+```
+
+The AI Assistant reads a compact, company-scoped snapshot through the authenticated server route. No Supabase migration is required.

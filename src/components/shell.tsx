@@ -16,6 +16,7 @@ const links = [
   ["/employees", "Employees"],
   ["/transactions", "Finances"],
   ["/reports", "Reports"],
+  ["/assistant", "AI Assistant"],
 ] as const;
 
 export function Shell({ children, company }: { children: React.ReactNode; company: string }) {
