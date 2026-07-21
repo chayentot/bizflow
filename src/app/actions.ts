@@ -221,7 +221,6 @@ export async function createEmployee(formData: FormData) {
   const { error } = await ctx.supabase.from("employees").insert({
     company_id: ctx.companyId,
     department_id: text(formData, "department_id") || null,
-    employee_number: text(formData, "employee_number").toUpperCase(),
     first_name: text(formData, "first_name"),
     last_name: text(formData, "last_name"),
     email: text(formData, "email") || null,

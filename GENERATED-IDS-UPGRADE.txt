@@ -1,0 +1,20 @@
+BIZFLOW GENERATED CUSTOMER & EMPLOYEE NUMBERS
+
+1. Upload this update to the root of your GitHub repository and commit it.
+2. In Supabase, open SQL Editor.
+3. Run only:
+
+   supabase/migrations/005_generated_record_numbers.sql
+
+4. Wait for Vercel to redeploy.
+
+WHAT CHANGES
+- Customers receive CUS-000001, CUS-000002, etc.
+- Employees receive EMP-000001, EMP-000002, etc.
+- Existing customers are backfilled with customer numbers.
+- Existing employee numbers stay unchanged.
+- New numbers are generated in Supabase, not in the browser.
+- Numbers cannot be edited after creation.
+- Generation is protected against simultaneous duplicate creation.
+
+Do not rerun the full schema.sql on an existing database.

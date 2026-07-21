@@ -1,2 +1,41 @@
-import Link from "next/link";import {createEmployee} from "@/app/actions";import {Shell} from "@/components/shell";import {FormButton} from "@/components/form-button";import {getWorkspace} from "@/lib/workspace";
-export default async function NewEmployee({searchParams}:{searchParams:Promise<{error?:string}>}){const w=await getWorkspace();const q=await searchParams;const {data:departments}=await w.supabase.from("departments").select("id,name").eq("company_id",w.companyId).order("name");const today=new Date().toISOString().slice(0,10);return <Shell company={w.companyName}><div className="max-w-3xl"><Link className="text-sm font-bold text-slate-600" href="/employees">← Back to employees</Link><h1 className="mt-4 text-3xl font-black">Add employee</h1>{q.error&&<p className="mt-4 rounded-lg bg-red-50 p-3 text-red-700">{q.error}</p>}<form action={createEmployee} className="card mt-6 grid gap-4 sm:grid-cols-2"><label><span className="label">Employee ID</span><input name="employee_number" placeholder="EMP-001" required/></label><label><span className="label">Department</span><select name="department_id"><option value="">Unassigned</option>{departments?.map(d=><option value={d.id} key={d.id}>{d.name}</option>)}</select></label><label><span className="label">First name</span><input name="first_name" required/></label><label><span className="label">Last name</span><input name="last_name" required/></label><label><span className="label">Email</span><input type="email" name="email"/></label><label><span className="label">Phone</span><input name="phone"/></label><label className="sm:col-span-2"><span className="label">Job title</span><input name="job_title" required/></label><label><span className="label">Employment type</span><select name="employment_type"><option value="full_time">Full time</option><option value="part_time">Part time</option><option value="contract">Contract</option><option value="intern">Intern</option></select></label><label><span className="label">Status</span><select name="status"><option value="active">Active</option><option value="on_leave">On leave</option><option value="inactive">Inactive</option></select></label><label><span className="label">Hire date</span><input type="date" name="hire_date" defaultValue={today} required/></label><label><span className="label">Monthly salary</span><input type="number" min="0" step="0.01" name="salary" defaultValue="0" required/></label><div className="flex gap-3 sm:col-span-2"><FormButton pendingText="Adding employee...">Add employee</FormButton><Link className="btn-secondary rounded-lg px-4 py-2 font-bold" href="/employees">Cancel</Link></div></form></div></Shell>}
+import Link from "next/link";
+import { createEmployee } from "@/app/actions";
+import { Shell } from "@/components/shell";
+import { FormButton } from "@/components/form-button";
+import { getWorkspace } from "@/lib/workspace";
+
+export default async function NewEmployee({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const w = await getWorkspace();
+  const q = await searchParams;
+  const { data: departments } = await w.supabase.from("departments").select("id,name").eq("company_id", w.companyId).order("name");
+  const today = new Date().toISOString().slice(0, 10);
+
+  return <Shell company={w.companyName}>
+    <div className="max-w-3xl">
+      <Link className="text-sm font-bold text-slate-600" href="/employees">← Back to employees</Link>
+      <h1 className="mt-4 text-3xl font-black">Add employee</h1>
+      <p className="mt-1 text-slate-600">The employee number is generated automatically after saving and cannot be changed.</p>
+      {q.error && <p className="mt-4 rounded-lg bg-red-50 p-3 text-red-700">{q.error}</p>}
+      <form action={createEmployee} className="card mt-6 grid gap-4 sm:grid-cols-2">
+        <label>
+          <span className="label">Employee number</span>
+          <input value="Generated after saving" readOnly disabled className="bg-slate-100 text-slate-500" />
+        </label>
+        <label>
+          <span className="label">Department</span>
+          <select name="department_id"><option value="">Unassigned</option>{departments?.map(d => <option value={d.id} key={d.id}>{d.name}</option>)}</select>
+        </label>
+        <label><span className="label">First name</span><input name="first_name" required /></label>
+        <label><span className="label">Last name</span><input name="last_name" required /></label>
+        <label><span className="label">Email</span><input type="email" name="email" /></label>
+        <label><span className="label">Phone</span><input name="phone" /></label>
+        <label className="sm:col-span-2"><span className="label">Job title</span><input name="job_title" required /></label>
+        <label><span className="label">Employment type</span><select name="employment_type"><option value="full_time">Full time</option><option value="part_time">Part time</option><option value="contract">Contract</option><option value="intern">Intern</option></select></label>
+        <label><span className="label">Status</span><select name="status"><option value="active">Active</option><option value="on_leave">On leave</option><option value="inactive">Inactive</option></select></label>
+        <label><span className="label">Hire date</span><input type="date" name="hire_date" defaultValue={today} required /></label>
+        <label><span className="label">Monthly salary</span><input type="number" min="0" step="0.01" name="salary" defaultValue="0" required /></label>
+        <div className="flex gap-3 sm:col-span-2"><FormButton pendingText="Adding employee...">Add employee</FormButton><Link className="btn-secondary rounded-lg px-4 py-2 font-bold" href="/employees">Cancel</Link></div>
+      </form>
+    </div>
+  </Shell>;
+}
