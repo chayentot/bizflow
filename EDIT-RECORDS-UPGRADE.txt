@@ -1,0 +1,11 @@
+BizFlow Customer and Employee Edit Upgrade
+
+Added:
+- Edit button on every customer row
+- Edit button on every employee row
+- Pre-filled customer edit page
+- Pre-filled employee edit page
+- Customer ID remains read-only
+- Employee number remains read-only
+
+No Supabase migration is required.

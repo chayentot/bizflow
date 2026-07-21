@@ -59,6 +59,22 @@ export async function createCustomer(formData: FormData) {
   const ctx=await companyId(); const { error }=await ctx.supabase.from("customers").insert({ company_id:ctx.companyId,name:text(formData,"name"),email:text(formData,"email")||null,phone:text(formData,"phone")||null,company_name:text(formData,"company_name")||null,status:text(formData,"status") });
   if(error) redirect(`/customers/new?error=${encodeURIComponent(error.message)}`); revalidatePath("/customers"); revalidatePath("/dashboard"); redirect("/customers");
 }
+export async function updateCustomer(formData: FormData) {
+  const ctx = await companyId();
+  const id = text(formData, "id");
+  const { error } = await ctx.supabase.from("customers").update({
+    name: text(formData, "name"),
+    email: text(formData, "email") || null,
+    phone: text(formData, "phone") || null,
+    company_name: text(formData, "company_name") || null,
+    status: text(formData, "status"),
+    updated_at: new Date().toISOString(),
+  }).eq("id", id).eq("company_id", ctx.companyId);
+  if (error) redirect(`/customers/${id}/edit?error=${encodeURIComponent(error.message)}`);
+  revalidatePath("/customers"); revalidatePath("/dashboard");
+  redirect("/customers");
+}
+
 export async function deleteCustomer(formData: FormData) { const ctx=await companyId(); await ctx.supabase.from("customers").delete().eq("id",text(formData,"id")).eq("company_id",ctx.companyId); revalidatePath("/customers"); revalidatePath("/dashboard"); }
 
 export async function createTransaction(formData: FormData) {
@@ -233,6 +249,27 @@ export async function createEmployee(formData: FormData) {
     created_by: ctx.user.id,
   });
   if (error) redirect(`/employees/new?error=${encodeURIComponent(error.message)}`);
+  revalidatePath("/employees"); revalidatePath("/dashboard");
+  redirect("/employees");
+}
+
+export async function updateEmployee(formData: FormData) {
+  const ctx = await companyId();
+  const id = text(formData, "id");
+  const { error } = await ctx.supabase.from("employees").update({
+    department_id: text(formData, "department_id") || null,
+    first_name: text(formData, "first_name"),
+    last_name: text(formData, "last_name"),
+    email: text(formData, "email") || null,
+    phone: text(formData, "phone") || null,
+    job_title: text(formData, "job_title"),
+    employment_type: text(formData, "employment_type") || "full_time",
+    status: text(formData, "status") || "active",
+    hire_date: text(formData, "hire_date"),
+    salary: Math.max(0, Number(text(formData, "salary")) || 0),
+    updated_at: new Date().toISOString(),
+  }).eq("id", id).eq("company_id", ctx.companyId);
+  if (error) redirect(`/employees/${id}/edit?error=${encodeURIComponent(error.message)}`);
   revalidatePath("/employees"); revalidatePath("/dashboard");
   redirect("/employees");
 }
