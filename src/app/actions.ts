@@ -201,3 +201,86 @@ export async function deleteInvoice(formData: FormData) {
   revalidatePath("/invoices"); revalidatePath("/dashboard"); revalidatePath("/reports");
   redirect("/invoices");
 }
+
+export async function createDepartment(formData: FormData) {
+  const ctx = await companyId();
+  const { error } = await ctx.supabase.from("departments").insert({
+    company_id: ctx.companyId,
+    name: text(formData, "name"),
+    description: text(formData, "description") || null,
+    created_by: ctx.user.id,
+  });
+  if (error) redirect(`/employees?error=${encodeURIComponent(error.message)}`);
+  revalidatePath("/employees");
+}
+
+export async function createEmployee(formData: FormData) {
+  const ctx = await companyId();
+  const { error } = await ctx.supabase.from("employees").insert({
+    company_id: ctx.companyId,
+    department_id: text(formData, "department_id") || null,
+    employee_number: text(formData, "employee_number").toUpperCase(),
+    first_name: text(formData, "first_name"),
+    last_name: text(formData, "last_name"),
+    email: text(formData, "email") || null,
+    phone: text(formData, "phone") || null,
+    job_title: text(formData, "job_title"),
+    employment_type: text(formData, "employment_type") || "full_time",
+    status: text(formData, "status") || "active",
+    hire_date: text(formData, "hire_date"),
+    salary: Math.max(0, Number(text(formData, "salary")) || 0),
+    created_by: ctx.user.id,
+  });
+  if (error) redirect(`/employees?error=${encodeURIComponent(error.message)}`);
+  revalidatePath("/employees"); revalidatePath("/dashboard");
+}
+
+export async function updateEmployeeStatus(formData: FormData) {
+  const ctx = await companyId();
+  const { error } = await ctx.supabase.from("employees").update({
+    status: text(formData, "status"),
+    updated_at: new Date().toISOString(),
+  }).eq("id", text(formData, "id")).eq("company_id", ctx.companyId);
+  if (error) redirect(`/employees?error=${encodeURIComponent(error.message)}`);
+  revalidatePath("/employees"); revalidatePath("/dashboard");
+}
+
+export async function deleteEmployee(formData: FormData) {
+  const ctx = await companyId();
+  const { error } = await ctx.supabase.from("employees").delete().eq("id", text(formData, "id")).eq("company_id", ctx.companyId);
+  if (error) redirect(`/employees?error=${encodeURIComponent(error.message)}`);
+  revalidatePath("/employees"); revalidatePath("/dashboard");
+}
+
+export async function createLeaveRequest(formData: FormData) {
+  const ctx = await companyId();
+  const startDate = text(formData, "start_date");
+  const endDate = text(formData, "end_date");
+  if (endDate < startDate) redirect("/employees?error=Leave+end+date+must+be+after+the+start+date");
+  const { error } = await ctx.supabase.from("leave_requests").insert({
+    company_id: ctx.companyId,
+    employee_id: text(formData, "employee_id"),
+    leave_type: text(formData, "leave_type"),
+    start_date: startDate,
+    end_date: endDate,
+    reason: text(formData, "reason") || null,
+    status: "pending",
+    created_by: ctx.user.id,
+  });
+  if (error) redirect(`/employees?error=${encodeURIComponent(error.message)}`);
+  revalidatePath("/employees"); revalidatePath("/dashboard");
+}
+
+export async function updateLeaveStatus(formData: FormData) {
+  const ctx = await companyId();
+  const id = text(formData, "id");
+  const status = text(formData, "status");
+  const { error } = await ctx.supabase.from("leave_requests").update({ status }).eq("id", id).eq("company_id", ctx.companyId);
+  if (error) redirect(`/employees?error=${encodeURIComponent(error.message)}`);
+
+  const employeeId = text(formData, "employee_id");
+  if (status === "approved") {
+    await ctx.supabase.from("employees").update({ status: "on_leave", updated_at: new Date().toISOString() }).eq("id", employeeId).eq("company_id", ctx.companyId);
+  }
+  revalidatePath("/employees"); revalidatePath("/dashboard");
+}

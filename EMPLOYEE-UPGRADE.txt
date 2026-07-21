@@ -1,0 +1,8 @@
+BIZFLOW EMPLOYEE & LEAVE MANAGEMENT
+
+1. Upload all files to the root of your GitHub repository.
+2. Commit the changes and wait for Vercel to deploy.
+3. In Supabase SQL Editor, run only:
+   supabase/migrations/004_employees.sql
+4. Do not rerun the complete schema.sql on an existing database.
+5. Open Employees in the sidebar, create a department, add an employee, then submit and approve a leave request.

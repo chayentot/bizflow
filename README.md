@@ -52,3 +52,7 @@ For an existing BizFlow database, run only:
 ```sql
 supabase/migrations/003_inventory.sql
 ```
+
+## Employee & Leave Management upgrade
+
+The Employees module includes a team directory, departments, employment types, salary tracking, employee status, leave requests, and approval workflows. Existing projects should run `supabase/migrations/004_employees.sql` once in Supabase SQL Editor.
