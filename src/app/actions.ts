@@ -325,3 +325,31 @@ export async function updateLeaveStatus(formData: FormData) {
   }
   revalidatePath("/employees"); revalidatePath("/dashboard");
 }
+
+export async function markNotificationRead(formData: FormData) {
+  const ctx = await companyId();
+  await ctx.supabase.from("notifications").update({ is_read: true }).eq("id", text(formData,"id")).eq("company_id",ctx.companyId);
+  revalidatePath("/notifications");
+}
+export async function markAllNotificationsRead() {
+  const ctx = await companyId();
+  await ctx.supabase.from("notifications").update({ is_read: true }).eq("company_id",ctx.companyId).eq("is_read",false);
+  revalidatePath("/notifications");
+}
+export async function createCalendarEvent(formData: FormData) {
+  const ctx = await companyId();
+  const { error } = await ctx.supabase.from("calendar_events").insert({
+    company_id:ctx.companyId,title:text(formData,"title"),event_type:text(formData,"event_type"),
+    start_at:text(formData,"start_at"),end_at:text(formData,"end_at")||null,description:text(formData,"description")||null,created_by:ctx.user.id
+  });
+  if(error) redirect(`/calendar?error=${encodeURIComponent(error.message)}`);
+  revalidatePath("/calendar"); redirect("/calendar");
+}
+export async function deleteCalendarEvent(formData: FormData) {
+  const ctx=await companyId(); await ctx.supabase.from("calendar_events").delete().eq("id",text(formData,"id")).eq("company_id",ctx.companyId); revalidatePath("/calendar");
+}
+export async function updateCompanySettings(formData: FormData) {
+  const ctx=await companyId();
+  const {error}=await ctx.supabase.from("company_settings").upsert({company_id:ctx.companyId,currency:text(formData,"currency")||"USD",tax_rate:Number(text(formData,"tax_rate"))||0,timezone:text(formData,"timezone")||"UTC",address:text(formData,"address")||null,phone:text(formData,"phone")||null,email:text(formData,"email")||null,website:text(formData,"website")||null,updated_at:new Date().toISOString()});
+  if(error) redirect(`/settings?error=${encodeURIComponent(error.message)}`); revalidatePath("/settings"); redirect("/settings?message=Settings+saved");
+}

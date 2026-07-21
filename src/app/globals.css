@@ -14,3 +14,10 @@ button:disabled { cursor: not-allowed; opacity: .65; }
   .card { padding: 1rem; }
   h1 { line-height: 1.1; }
 }
+.dark { color-scheme: dark; }
+.dark body { background:#020617; color:#e2e8f0; }
+.dark .card { background:#0f172a; border-color:#334155; }
+.dark input,.dark select,.dark textarea { background:#020617; color:#e2e8f0; border-color:#475569; }
+.dark .bg-white { background:#0f172a !important; }
+.dark .bg-slate-50 { background:#1e293b !important; }
+.dark .text-slate-600,.dark .text-slate-500 { color:#94a3b8 !important; }

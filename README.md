@@ -71,3 +71,7 @@ OPENAI_MODEL=gpt-5-mini
 ```
 
 The AI Assistant reads a compact, company-scoped snapshot through the authenticated server route. No Supabase migration is required.
+
+## BizFlow V3 Enterprise
+
+V3 adds an executive dashboard, notifications, activity timelines, audit logging, a unified calendar, analytics, company settings, profile pages, and dark mode. Existing data is preserved. Run `supabase/migrations/006_v3_enterprise.sql` once after uploading the update.
