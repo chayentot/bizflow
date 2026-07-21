@@ -1,0 +1,13 @@
+BizFlow Version 2 interface update
+
+Main module pages now open with records first. Creation forms were moved to dedicated routes:
+- /customers/new
+- /tasks/new
+- /inventory/new
+- /invoices/new
+- /transactions/new
+- /employees/new
+- /employees/leave/new
+- /employees/departments/new
+
+No Supabase migration is required. Upload all files to the repository root and commit them. Vercel will deploy automatically.

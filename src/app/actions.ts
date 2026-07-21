@@ -47,7 +47,7 @@ async function companyId() {
 export async function createTask(formData: FormData) {
   const ctx = await companyId();
   const { error } = await ctx.supabase.from("tasks").insert({ company_id: ctx.companyId, title: text(formData,"title"), description: text(formData,"description"), status: text(formData,"status"), priority: text(formData,"priority"), due_date: text(formData,"due_date") || null, created_by: ctx.user.id });
-  if (error) redirect(`/tasks?error=${encodeURIComponent(error.message)}`); revalidatePath("/tasks"); revalidatePath("/dashboard");
+  if (error) redirect(`/tasks/new?error=${encodeURIComponent(error.message)}`); revalidatePath("/tasks"); revalidatePath("/dashboard"); redirect("/tasks");
 }
 export async function toggleTask(formData: FormData) {
   const ctx = await companyId(); const id=text(formData,"id"), current=text(formData,"status");
@@ -57,13 +57,13 @@ export async function deleteTask(formData: FormData) { const ctx=await companyId
 
 export async function createCustomer(formData: FormData) {
   const ctx=await companyId(); const { error }=await ctx.supabase.from("customers").insert({ company_id:ctx.companyId,name:text(formData,"name"),email:text(formData,"email")||null,phone:text(formData,"phone")||null,company_name:text(formData,"company_name")||null,status:text(formData,"status") });
-  if(error) redirect(`/customers?error=${encodeURIComponent(error.message)}`); revalidatePath("/customers"); revalidatePath("/dashboard");
+  if(error) redirect(`/customers/new?error=${encodeURIComponent(error.message)}`); revalidatePath("/customers"); revalidatePath("/dashboard"); redirect("/customers");
 }
 export async function deleteCustomer(formData: FormData) { const ctx=await companyId(); await ctx.supabase.from("customers").delete().eq("id",text(formData,"id")).eq("company_id",ctx.companyId); revalidatePath("/customers"); revalidatePath("/dashboard"); }
 
 export async function createTransaction(formData: FormData) {
   const ctx=await companyId(); const { error }=await ctx.supabase.from("transactions").insert({ company_id:ctx.companyId,type:text(formData,"type"),category:text(formData,"category"),amount:Number(text(formData,"amount")),description:text(formData,"description")||null,transaction_date:text(formData,"transaction_date"),created_by:ctx.user.id });
-  if(error) redirect(`/transactions?error=${encodeURIComponent(error.message)}`); revalidatePath("/transactions"); revalidatePath("/dashboard");
+  if(error) redirect(`/transactions/new?error=${encodeURIComponent(error.message)}`); revalidatePath("/transactions"); revalidatePath("/dashboard"); redirect("/transactions");
 }
 export async function deleteTransaction(formData: FormData) { const ctx=await companyId(); await ctx.supabase.from("transactions").delete().eq("id",text(formData,"id")).eq("company_id",ctx.companyId); revalidatePath("/transactions"); revalidatePath("/dashboard"); }
 
@@ -78,9 +78,10 @@ export async function createProduct(formData: FormData) {
     quantity, low_stock_threshold: Math.max(0, Number(text(formData, "low_stock_threshold")) || 0),
     created_by: ctx.user.id,
   }).select("id").single();
-  if (error) redirect(`/inventory?error=${encodeURIComponent(error.message)}`);
+  if (error) redirect(`/inventory/new?error=${encodeURIComponent(error.message)}`);
   if (quantity > 0) await ctx.supabase.from("stock_movements").insert({ company_id: ctx.companyId, product_id: product.id, movement_type: "initial", quantity_change: quantity, note: "Opening stock", created_by: ctx.user.id });
   revalidatePath("/inventory");
+  redirect("/inventory");
 }
 
 export async function adjustStock(formData: FormData) {
@@ -115,13 +116,13 @@ export async function createInvoice(formData: FormData) {
   let product: { id: string; name: string; selling_price: number|string; quantity: number|string } | null = null;
   if (productId) {
     const result = await ctx.supabase.from("products").select("id,name,selling_price,quantity").eq("id", productId).eq("company_id", ctx.companyId).single();
-    if (result.error || !result.data) redirect("/invoices?error=Selected+product+was+not+found");
+    if (result.error || !result.data) redirect("/invoices/new?error=Selected+product+was+not+found");
     product = result.data;
-    if (Number(product.quantity) < quantity) redirect(`/invoices?error=${encodeURIComponent(`Only ${product.quantity} units are in stock`)}`);
+    if (Number(product.quantity) < quantity) redirect(`/invoices/new?error=${encodeURIComponent(`Only ${product.quantity} units are in stock`)}`);
     description = description || product.name;
     if (unitPrice === 0) unitPrice = Number(product.selling_price);
   }
-  if (!description) redirect("/invoices?error=Enter+an+item+description+or+select+a+product");
+  if (!description) redirect("/invoices/new?error=Enter+an+item+description+or+select+a+product");
   const taxRate = Math.max(0, Number(text(formData, "tax_rate")) || 0);
   const discount = Math.max(0, Number(text(formData, "discount")) || 0);
   const subtotal = quantity * unitPrice;
@@ -144,7 +145,7 @@ export async function createInvoice(formData: FormData) {
     created_by: ctx.user.id,
   }).select("id").single();
 
-  if (error) redirect(`/invoices?error=${encodeURIComponent(error.message)}`);
+  if (error) redirect(`/invoices/new?error=${encodeURIComponent(error.message)}`);
   const item = await ctx.supabase.from("invoice_items").insert({
     invoice_id: invoice.id,
     product_id: product?.id || null,
@@ -153,7 +154,7 @@ export async function createInvoice(formData: FormData) {
     unit_price: unitPrice,
     total: subtotal,
   });
-  if (item.error) redirect(`/invoices?error=${encodeURIComponent(item.error.message)}`);
+  if (item.error) redirect(`/invoices/new?error=${encodeURIComponent(item.error.message)}`);
   if (product) {
     const nextQuantity = Number(product.quantity) - quantity;
     const stockUpdate = await ctx.supabase.from("products").update({ quantity: nextQuantity, updated_at: new Date().toISOString() }).eq("id", product.id).eq("company_id", ctx.companyId);
@@ -210,8 +211,9 @@ export async function createDepartment(formData: FormData) {
     description: text(formData, "description") || null,
     created_by: ctx.user.id,
   });
-  if (error) redirect(`/employees?error=${encodeURIComponent(error.message)}`);
+  if (error) redirect(`/employees/departments/new?error=${encodeURIComponent(error.message)}`);
   revalidatePath("/employees");
+  redirect("/employees");
 }
 
 export async function createEmployee(formData: FormData) {
@@ -231,8 +233,9 @@ export async function createEmployee(formData: FormData) {
     salary: Math.max(0, Number(text(formData, "salary")) || 0),
     created_by: ctx.user.id,
   });
-  if (error) redirect(`/employees?error=${encodeURIComponent(error.message)}`);
+  if (error) redirect(`/employees/new?error=${encodeURIComponent(error.message)}`);
   revalidatePath("/employees"); revalidatePath("/dashboard");
+  redirect("/employees");
 }
 
 export async function updateEmployeeStatus(formData: FormData) {
@@ -241,8 +244,9 @@ export async function updateEmployeeStatus(formData: FormData) {
     status: text(formData, "status"),
     updated_at: new Date().toISOString(),
   }).eq("id", text(formData, "id")).eq("company_id", ctx.companyId);
-  if (error) redirect(`/employees?error=${encodeURIComponent(error.message)}`);
+  if (error) redirect(`/employees/leave/new?error=${encodeURIComponent(error.message)}`);
   revalidatePath("/employees"); revalidatePath("/dashboard");
+  redirect("/employees");
 }
 
 export async function deleteEmployee(formData: FormData) {
@@ -256,7 +260,7 @@ export async function createLeaveRequest(formData: FormData) {
   const ctx = await companyId();
   const startDate = text(formData, "start_date");
   const endDate = text(formData, "end_date");
-  if (endDate < startDate) redirect("/employees?error=Leave+end+date+must+be+after+the+start+date");
+  if (endDate < startDate) redirect("/employees/leave/new?error=Leave+end+date+must+be+after+the+start+date");
   const { error } = await ctx.supabase.from("leave_requests").insert({
     company_id: ctx.companyId,
     employee_id: text(formData, "employee_id"),
@@ -267,8 +271,9 @@ export async function createLeaveRequest(formData: FormData) {
     status: "pending",
     created_by: ctx.user.id,
   });
-  if (error) redirect(`/employees?error=${encodeURIComponent(error.message)}`);
+  if (error) redirect(`/employees/leave/new?error=${encodeURIComponent(error.message)}`);
   revalidatePath("/employees"); revalidatePath("/dashboard");
+  redirect("/employees");
 }
 
 export async function updateLeaveStatus(formData: FormData) {
