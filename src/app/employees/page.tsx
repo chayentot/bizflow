@@ -1,6 +1,7 @@
 import { Shell } from "@/components/shell";
 import { getWorkspace } from "@/lib/workspace";
 import { createDepartment, createEmployee, createLeaveRequest, deleteEmployee, updateEmployeeStatus, updateLeaveStatus } from "@/app/actions";
+import { FormButton } from "@/components/form-button";
 
 type SearchParams = Promise<{ error?: string }>;
 
@@ -68,10 +69,10 @@ export default async function EmployeesPage({ searchParams }: { searchParams: Se
           <label><span className="label">Employment type</span><select name="employment_type"><option value="full_time">Full time</option><option value="part_time">Part time</option><option value="contract">Contract</option><option value="intern">Intern</option></select></label>
           <label><span className="label">Status</span><select name="status"><option value="active">Active</option><option value="on_leave">On leave</option><option value="inactive">Inactive</option></select></label>
           <label><span className="label">Hire date</span><input type="date" name="hire_date" defaultValue={today} required/></label><label><span className="label">Monthly salary</span><input type="number" min="0" step="0.01" name="salary" defaultValue="0" required/></label>
-          <button className="btn sm:col-span-2">Add employee</button>
+          <FormButton className="btn sm:col-span-2" pendingText="Adding employee...">Add employee</FormButton>
         </form></section>
 
-        <section className="card"><h2 className="text-xl font-black">Add department</h2><form action={createDepartment} className="mt-4 grid gap-3"><label><span className="label">Department name</span><input name="name" placeholder="Sales" required/></label><label><span className="label">Description</span><textarea name="description" rows={2}/></label><button className="btn">Create department</button></form></section>
+        <section className="card"><h2 className="text-xl font-black">Add department</h2><form action={createDepartment} className="mt-4 grid gap-3"><label><span className="label">Department name</span><input name="name" placeholder="Sales" required/></label><label><span className="label">Description</span><textarea name="description" rows={2}/></label><FormButton pendingText="Creating department...">Create department</FormButton></form></section>
       </div>
     </div>
 
@@ -80,7 +81,7 @@ export default async function EmployeesPage({ searchParams }: { searchParams: Se
         <label className="sm:col-span-2"><span className="label">Employee</span><select name="employee_id" required>{staff.map(e => <option key={e.id} value={e.id}>{e.first_name} {e.last_name}</option>)}</select></label>
         <label><span className="label">Leave type</span><select name="leave_type"><option value="vacation">Vacation</option><option value="sick">Sick</option><option value="personal">Personal</option><option value="parental">Parental</option><option value="other">Other</option></select></label>
         <div></div><label><span className="label">Start date</span><input type="date" name="start_date" defaultValue={today} required/></label><label><span className="label">End date</span><input type="date" name="end_date" defaultValue={today} required/></label>
-        <label className="sm:col-span-2"><span className="label">Reason</span><textarea name="reason" rows={3}/></label><button className="btn sm:col-span-2">Submit leave request</button>
+        <label className="sm:col-span-2"><span className="label">Reason</span><textarea name="reason" rows={3}/></label><FormButton className="btn sm:col-span-2" pendingText="Submitting request...">Submit leave request</FormButton>
       </form>}</section>
 
       <section className="card overflow-x-auto"><h2 className="text-xl font-black">Leave requests</h2>{(leaveRequests ?? []).length === 0 ? <p className="mt-5 rounded-xl bg-slate-50 p-6 text-center text-slate-500">No leave requests yet.</p> :

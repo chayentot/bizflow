@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createInvoice } from "@/app/actions";
 import { Shell } from "@/components/shell";
 import { getWorkspace } from "@/lib/workspace";
+import { FormButton } from "@/components/form-button";
 
 const money = (value:number|string) => new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(Number(value));
 
@@ -30,7 +31,7 @@ export default async function Invoices({searchParams}:{searchParams:Promise<{err
         <div className="grid grid-cols-2 gap-3"><label><span className="label">Quantity</span><input name="quantity" type="number" min="1" step="1" defaultValue="1" required/></label><label><span className="label">Unit price</span><input name="unit_price" type="number" min="0" step="0.01" required/></label></div>
         <div className="grid grid-cols-2 gap-3"><label><span className="label">Tax %</span><input name="tax_rate" type="number" min="0" step="0.01" defaultValue="0"/></label><label><span className="label">Discount</span><input name="discount" type="number" min="0" step="0.01" defaultValue="0"/></label></div>
         <label><span className="label">Notes</span><textarea name="notes" rows={3} placeholder="Payment terms or thank-you note"/></label>
-        <button className="btn w-full" disabled={!customers?.length}>Create invoice</button>
+        <FormButton className="btn w-full" disabled={!customers?.length} pendingText="Creating invoice...">Create invoice</FormButton>
       </form>
       <section className="card overflow-x-auto p-0"><table className="w-full min-w-[700px] text-left"><thead className="border-b bg-slate-50 text-sm text-slate-600"><tr><th className="p-4">Invoice</th><th className="p-4">Customer</th><th className="p-4">Status</th><th className="p-4">Due</th><th className="p-4 text-right">Total</th></tr></thead><tbody>{invoices?.length?invoices.map(i=>{const c=i.customers as unknown as {name:string;company_name:string|null}|null; const overdue=i.status!=="paid"&&i.due_date<today; return <tr key={i.id} className="border-b last:border-0 hover:bg-slate-50"><td className="p-4 font-bold"><Link className="text-blue-700 hover:underline" href={`/invoices/${i.id}`}>{i.invoice_number}</Link></td><td className="p-4">{c?.company_name||c?.name||"Customer"}</td><td className="p-4"><span className={`rounded-full px-2 py-1 text-xs font-bold uppercase ${overdue?"bg-red-100 text-red-700":i.status==="paid"?"bg-emerald-100 text-emerald-700":"bg-slate-100"}`}>{overdue?"overdue":i.status}</span></td><td className="p-4">{i.due_date}</td><td className="p-4 text-right font-bold">{money(i.total)}</td></tr>}):<tr><td className="p-6 text-slate-500" colSpan={5}>No invoices yet.</td></tr>}</tbody></table></section>
     </div>

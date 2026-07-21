@@ -1,6 +1,7 @@
 import { createProduct, adjustStock, deleteProduct } from "@/app/actions";
 import { Shell } from "@/components/shell";
 import { getWorkspace } from "@/lib/workspace";
+import { FormButton } from "@/components/form-button";
 
 const money = (value:number|string) => new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(Number(value));
 
@@ -36,7 +37,7 @@ export default async function Inventory({searchParams}:{searchParams:Promise<{er
         <label><span className="label">Description</span><textarea name="description" rows={2} placeholder="Optional product notes"/></label>
         <div className="grid grid-cols-2 gap-3"><label><span className="label">Cost</span><input name="cost" type="number" min="0" step="0.01" defaultValue="0" required/></label><label><span className="label">Selling price</span><input name="selling_price" type="number" min="0" step="0.01" defaultValue="0" required/></label></div>
         <div className="grid grid-cols-2 gap-3"><label><span className="label">Starting quantity</span><input name="quantity" type="number" min="0" step="1" defaultValue="0" required/></label><label><span className="label">Low-stock level</span><input name="low_stock_threshold" type="number" min="0" step="1" defaultValue="5" required/></label></div>
-        <button className="btn w-full">Add product</button>
+        <FormButton className="btn w-full" pendingText="Adding product...">Add product</FormButton>
       </form>
 
       <section className="card overflow-x-auto p-0"><table className="w-full min-w-[850px] text-left"><thead className="border-b bg-slate-50 text-sm text-slate-600"><tr><th className="p-4">Product</th><th className="p-4">SKU</th><th className="p-4 text-right">Cost</th><th className="p-4 text-right">Price</th><th className="p-4 text-right">Stock</th><th className="p-4">Adjust</th><th className="p-4"></th></tr></thead><tbody>

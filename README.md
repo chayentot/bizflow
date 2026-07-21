@@ -56,3 +56,7 @@ supabase/migrations/003_inventory.sql
 ## Employee & Leave Management upgrade
 
 The Employees module includes a team directory, departments, employment types, salary tracking, employee status, leave requests, and approval workflows. Existing projects should run `supabase/migrations/004_employees.sql` once in Supabase SQL Editor.
+
+## UX polish upgrade
+
+This version adds double-submit protection, pending button states, a responsive mobile navigation drawer, active navigation highlighting, and a global loading skeleton. No new Supabase migration is required.
