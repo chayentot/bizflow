@@ -67,12 +67,61 @@ export async function createTransaction(formData: FormData) {
 }
 export async function deleteTransaction(formData: FormData) { const ctx=await companyId(); await ctx.supabase.from("transactions").delete().eq("id",text(formData,"id")).eq("company_id",ctx.companyId); revalidatePath("/transactions"); revalidatePath("/dashboard"); }
 
+export async function createProduct(formData: FormData) {
+  const ctx = await companyId();
+  const quantity = Math.max(0, Number(text(formData, "quantity")) || 0);
+  const { data: product, error } = await ctx.supabase.from("products").insert({
+    company_id: ctx.companyId, name: text(formData, "name"), sku: text(formData, "sku").toUpperCase(),
+    barcode: text(formData, "barcode") || null, description: text(formData, "description") || null,
+    cost: Math.max(0, Number(text(formData, "cost")) || 0),
+    selling_price: Math.max(0, Number(text(formData, "selling_price")) || 0),
+    quantity, low_stock_threshold: Math.max(0, Number(text(formData, "low_stock_threshold")) || 0),
+    created_by: ctx.user.id,
+  }).select("id").single();
+  if (error) redirect(`/inventory?error=${encodeURIComponent(error.message)}`);
+  if (quantity > 0) await ctx.supabase.from("stock_movements").insert({ company_id: ctx.companyId, product_id: product.id, movement_type: "initial", quantity_change: quantity, note: "Opening stock", created_by: ctx.user.id });
+  revalidatePath("/inventory");
+}
+
+export async function adjustStock(formData: FormData) {
+  const ctx = await companyId();
+  const id = text(formData, "id");
+  const change = Number(text(formData, "quantity_change"));
+  if (!Number.isFinite(change) || change === 0) redirect("/inventory?error=Enter+a+non-zero+stock+change");
+  const { data: product, error: readError } = await ctx.supabase.from("products").select("quantity").eq("id", id).eq("company_id", ctx.companyId).single();
+  if (readError || !product) redirect("/inventory?error=Product+not+found");
+  const nextQuantity = Number(product.quantity) + change;
+  if (nextQuantity < 0) redirect("/inventory?error=Stock+cannot+go+below+zero");
+  const { error } = await ctx.supabase.from("products").update({ quantity: nextQuantity, updated_at: new Date().toISOString() }).eq("id", id).eq("company_id", ctx.companyId);
+  if (error) redirect(`/inventory?error=${encodeURIComponent(error.message)}`);
+  await ctx.supabase.from("stock_movements").insert({ company_id: ctx.companyId, product_id: id, movement_type: change > 0 ? "restock" : "adjustment", quantity_change: change, note: text(formData, "note") || null, created_by: ctx.user.id });
+  revalidatePath("/inventory"); revalidatePath("/invoices");
+}
+
+export async function deleteProduct(formData: FormData) {
+  const ctx = await companyId();
+  const { error } = await ctx.supabase.from("products").delete().eq("id", text(formData, "id")).eq("company_id", ctx.companyId);
+  if (error) redirect(`/inventory?error=${encodeURIComponent(error.message)}`);
+  revalidatePath("/inventory"); revalidatePath("/invoices");
+}
+
 export async function createInvoice(formData: FormData) {
   const ctx = await companyId();
   const customerId = text(formData, "customer_id");
-  const description = text(formData, "description");
+  const productId = text(formData, "product_id");
   const quantity = Math.max(1, Number(text(formData, "quantity")) || 1);
-  const unitPrice = Math.max(0, Number(text(formData, "unit_price")) || 0);
+  let description = text(formData, "description");
+  let unitPrice = Math.max(0, Number(text(formData, "unit_price")) || 0);
+  let product: { id: string; name: string; selling_price: number|string; quantity: number|string } | null = null;
+  if (productId) {
+    const result = await ctx.supabase.from("products").select("id,name,selling_price,quantity").eq("id", productId).eq("company_id", ctx.companyId).single();
+    if (result.error || !result.data) redirect("/invoices?error=Selected+product+was+not+found");
+    product = result.data;
+    if (Number(product.quantity) < quantity) redirect(`/invoices?error=${encodeURIComponent(`Only ${product.quantity} units are in stock`)}`);
+    description = description || product.name;
+    if (unitPrice === 0) unitPrice = Number(product.selling_price);
+  }
+  if (!description) redirect("/invoices?error=Enter+an+item+description+or+select+a+product");
   const taxRate = Math.max(0, Number(text(formData, "tax_rate")) || 0);
   const discount = Math.max(0, Number(text(formData, "discount")) || 0);
   const subtotal = quantity * unitPrice;
@@ -98,13 +147,20 @@ export async function createInvoice(formData: FormData) {
   if (error) redirect(`/invoices?error=${encodeURIComponent(error.message)}`);
   const item = await ctx.supabase.from("invoice_items").insert({
     invoice_id: invoice.id,
+    product_id: product?.id || null,
     description,
     quantity,
     unit_price: unitPrice,
     total: subtotal,
   });
   if (item.error) redirect(`/invoices?error=${encodeURIComponent(item.error.message)}`);
-  revalidatePath("/invoices"); revalidatePath("/dashboard"); revalidatePath("/reports");
+  if (product) {
+    const nextQuantity = Number(product.quantity) - quantity;
+    const stockUpdate = await ctx.supabase.from("products").update({ quantity: nextQuantity, updated_at: new Date().toISOString() }).eq("id", product.id).eq("company_id", ctx.companyId);
+    if (stockUpdate.error) redirect(`/invoices?error=${encodeURIComponent(stockUpdate.error.message)}`);
+    await ctx.supabase.from("stock_movements").insert({ company_id: ctx.companyId, product_id: product.id, movement_type: "sale", quantity_change: -quantity, note: invoiceNumber, created_by: ctx.user.id });
+  }
+  revalidatePath("/invoices"); revalidatePath("/inventory"); revalidatePath("/dashboard"); revalidatePath("/reports");
   redirect(`/invoices/${invoice.id}`);
 }
 

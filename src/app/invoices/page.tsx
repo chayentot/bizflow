@@ -8,9 +8,10 @@ const money = (value:number|string) => new Intl.NumberFormat("en-US",{style:"cur
 export default async function Invoices({searchParams}:{searchParams:Promise<{error?:string}>}) {
   const w = await getWorkspace();
   const q = await searchParams;
-  const [{data:customers},{data:invoices}] = await Promise.all([
+  const [{data:customers},{data:invoices},{data:products}] = await Promise.all([
     w.supabase.from("customers").select("id,name,company_name").eq("company_id",w.companyId).order("name"),
-    w.supabase.from("invoices").select("id,invoice_number,status,issue_date,due_date,total,customers(name,company_name)").eq("company_id",w.companyId).order("created_at",{ascending:false})
+    w.supabase.from("invoices").select("id,invoice_number,status,issue_date,due_date,total,customers(name,company_name)").eq("company_id",w.companyId).order("created_at",{ascending:false}),
+    w.supabase.from("products").select("id,name,sku,selling_price,quantity").eq("company_id",w.companyId).gt("quantity",0).order("name")
   ]);
   const today = new Date().toISOString().slice(0,10);
   const due = new Date(Date.now()+14*86400000).toISOString().slice(0,10);
@@ -24,7 +25,8 @@ export default async function Invoices({searchParams}:{searchParams:Promise<{err
         <label><span className="label">Customer</span><select name="customer_id" required disabled={!customers?.length}><option value="">Select customer</option>{customers?.map(c=><option key={c.id} value={c.id}>{c.name}{c.company_name?` — ${c.company_name}`:""}</option>)}</select></label>
         <div className="grid grid-cols-2 gap-3"><label><span className="label">Issue date</span><input name="issue_date" type="date" defaultValue={today} required/></label><label><span className="label">Due date</span><input name="due_date" type="date" defaultValue={due} required/></label></div>
         <label><span className="label">Status</span><select name="status"><option value="draft">Draft</option><option value="sent">Sent</option><option value="paid">Paid</option></select></label>
-        <label><span className="label">Service or item</span><input name="description" placeholder="Website development" required/></label>
+        <label><span className="label">Inventory product (optional)</span><select name="product_id"><option value="">Manual service or item</option>{products?.map(p=><option key={p.id} value={p.id}>{p.name} — {p.sku} ({p.quantity} available, {money(p.selling_price)})</option>)}</select></label>
+        <label><span className="label">Description</span><input name="description" placeholder="Required for manual items; optional for products"/></label>
         <div className="grid grid-cols-2 gap-3"><label><span className="label">Quantity</span><input name="quantity" type="number" min="1" step="1" defaultValue="1" required/></label><label><span className="label">Unit price</span><input name="unit_price" type="number" min="0" step="0.01" required/></label></div>
         <div className="grid grid-cols-2 gap-3"><label><span className="label">Tax %</span><input name="tax_rate" type="number" min="0" step="0.01" defaultValue="0"/></label><label><span className="label">Discount</span><input name="discount" type="number" min="0" step="0.01" defaultValue="0"/></label></div>
         <label><span className="label">Notes</span><textarea name="notes" rows={3} placeholder="Payment terms or thank-you note"/></label>

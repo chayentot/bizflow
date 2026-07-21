@@ -42,3 +42,13 @@ Push the repository to GitHub, import it into Vercel, and add both environment v
 - Receipt uploads with Supabase Storage
 - Search, filters, pagination, and audit logs
 - Automated tests
+
+## Inventory upgrade
+
+The inventory module adds products, SKUs, barcodes, cost and selling prices, stock adjustments, low-stock alerts, inventory valuation, and optional inventory product selection on invoices. Creating an invoice with an inventory product automatically reduces its stock.
+
+For an existing BizFlow database, run only:
+
+```sql
+supabase/migrations/003_inventory.sql
+```
