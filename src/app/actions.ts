@@ -353,3 +353,48 @@ export async function updateCompanySettings(formData: FormData) {
   const {error}=await ctx.supabase.from("company_settings").upsert({company_id:ctx.companyId,currency:text(formData,"currency")||"USD",tax_rate:Number(text(formData,"tax_rate"))||0,timezone:text(formData,"timezone")||"UTC",address:text(formData,"address")||null,phone:text(formData,"phone")||null,email:text(formData,"email")||null,website:text(formData,"website")||null,updated_at:new Date().toISOString()});
   if(error) redirect(`/settings?error=${encodeURIComponent(error.message)}`); revalidatePath("/settings"); redirect("/settings?message=Settings+saved");
 }
+
+
+export async function createSupplier(formData: FormData) {
+  const ctx=await companyId();
+  const {error}=await ctx.supabase.from("suppliers").insert({company_id:ctx.companyId,supplier_number:"",name:text(formData,"name"),contact_name:text(formData,"contact_name")||null,email:text(formData,"email")||null,phone:text(formData,"phone")||null,address:text(formData,"address")||null,tax_number:text(formData,"tax_number")||null,payment_terms:text(formData,"payment_terms")||"Net 30",status:text(formData,"status")||"active",created_by:ctx.user.id});
+  if(error) redirect(`/suppliers/new?error=${encodeURIComponent(error.message)}`); revalidatePath("/suppliers"); redirect("/suppliers");
+}
+export async function updateSupplier(formData: FormData) {
+  const ctx=await companyId(); const id=text(formData,"id");
+  const {error}=await ctx.supabase.from("suppliers").update({name:text(formData,"name"),contact_name:text(formData,"contact_name")||null,email:text(formData,"email")||null,phone:text(formData,"phone")||null,address:text(formData,"address")||null,tax_number:text(formData,"tax_number")||null,payment_terms:text(formData,"payment_terms")||"Net 30",status:text(formData,"status")||"active",updated_at:new Date().toISOString()}).eq("id",id).eq("company_id",ctx.companyId);
+  if(error) redirect(`/suppliers/${id}/edit?error=${encodeURIComponent(error.message)}`); revalidatePath("/suppliers"); redirect("/suppliers");
+}
+export async function createPurchaseOrder(formData: FormData) {
+ const ctx=await companyId(); const qty=Math.max(1,Number(text(formData,"quantity"))||1),cost=Math.max(0,Number(text(formData,"unit_cost"))||0),taxRate=Math.max(0,Number(text(formData,"tax_rate"))||0); const subtotal=qty*cost,tax=subtotal*taxRate/100,total=subtotal+tax;
+ const {data:product}=await ctx.supabase.from("products").select("name").eq("id",text(formData,"product_id")).eq("company_id",ctx.companyId).single();
+ const {data:po,error}=await ctx.supabase.from("purchase_orders").insert({company_id:ctx.companyId,supplier_id:text(formData,"supplier_id"),po_number:"",status:text(formData,"status")||"ordered",order_date:text(formData,"order_date"),expected_date:text(formData,"expected_date")||null,subtotal,tax,total,notes:text(formData,"notes")||null,created_by:ctx.user.id}).select("id").single();
+ if(error||!po) redirect(`/purchasing/new?error=${encodeURIComponent(error?.message||"Could not create purchase order")}`);
+ const item=await ctx.supabase.from("purchase_order_items").insert({purchase_order_id:po.id,product_id:text(formData,"product_id"),description:text(formData,"description")||product?.name||"Product",quantity:qty,unit_cost:cost});
+ if(item.error) redirect(`/purchasing/new?error=${encodeURIComponent(item.error.message)}`); revalidatePath("/purchasing"); redirect(`/purchasing/${po.id}`);
+}
+export async function receivePurchaseOrder(formData: FormData) {
+ const ctx=await companyId(); const id=text(formData,"id"); const {error}=await ctx.supabase.rpc("receive_purchase_order",{p_purchase_order_id:id,p_actor:ctx.user.id});
+ if(error) redirect(`/purchasing/${id}?error=${encodeURIComponent(error.message)}`); revalidatePath("/purchasing");revalidatePath("/inventory");revalidatePath("/payables");revalidatePath("/dashboard");redirect(`/purchasing/${id}?message=Goods+received`);
+}
+export async function addSupplierPayment(formData: FormData) {
+ const ctx=await companyId(); const billId=text(formData,"supplier_bill_id"); const {error}=await ctx.supabase.from("supplier_payments").insert({company_id:ctx.companyId,supplier_bill_id:billId,amount:Number(text(formData,"amount")),payment_date:text(formData,"payment_date"),method:text(formData,"method"),reference:text(formData,"reference")||null,created_by:ctx.user.id});
+ if(error) redirect(`/payables?error=${encodeURIComponent(error.message)}`); revalidatePath("/payables");revalidatePath("/dashboard");redirect("/payables?message=Payment+recorded");
+}
+export async function createAutomationRule(formData: FormData) {
+ const ctx=await companyId(); const {error}=await ctx.supabase.from("automation_rules").insert({company_id:ctx.companyId,name:text(formData,"name"),trigger_type:text(formData,"trigger_type"),action_type:text(formData,"action_type"),created_by:ctx.user.id});
+ if(error) redirect(`/automations?error=${encodeURIComponent(error.message)}`); revalidatePath("/automations");redirect("/automations");
+}
+export async function toggleAutomationRule(formData: FormData) {
+ const ctx=await companyId(); await ctx.supabase.from("automation_rules").update({is_enabled:text(formData,"enabled")!=="true"}).eq("id",text(formData,"id")).eq("company_id",ctx.companyId); revalidatePath("/automations");
+}
+export async function runAutomations() {
+ const ctx=await companyId(); const {data:rules}=await ctx.supabase.from("automation_rules").select("*").eq("company_id",ctx.companyId).eq("is_enabled",true); let count=0;
+ for(const rule of rules??[]){ let message=""; let href="/dashboard";
+  if(rule.trigger_type==="low_stock"){const {data}=await ctx.supabase.from("products").select("name,quantity,low_stock_threshold").eq("company_id",ctx.companyId);const low=(data??[]).filter(p=>Number(p.quantity)<=Number(p.low_stock_threshold));if(low.length){message=`${low.length} product(s) need restocking`;href="/inventory";}}
+  if(rule.trigger_type==="invoice_overdue"){const {count:c}=await ctx.supabase.from("invoices").select("id",{count:"exact",head:true}).eq("company_id",ctx.companyId).lt("due_date",new Date().toISOString().slice(0,10)).neq("status","paid");if(c){message=`${c} invoice(s) are overdue`;href="/invoices";}}
+  if(rule.trigger_type==="task_due"){const {count:c}=await ctx.supabase.from("tasks").select("id",{count:"exact",head:true}).eq("company_id",ctx.companyId).lte("due_date",new Date().toISOString().slice(0,10)).neq("status","completed");if(c){message=`${c} task(s) are due`;href="/tasks";}}
+  if(message){await ctx.supabase.from("notifications").insert({company_id:ctx.companyId,type:"warning",title:rule.name,message,href});await ctx.supabase.from("automation_runs").insert({company_id:ctx.companyId,rule_id:rule.id,message});count++;}
+ }
+ revalidatePath("/automations");revalidatePath("/notifications");redirect(`/automations?message=${count}+automation(s)+created+notifications`);
+}

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Menu, X, Moon, Sun } from "lucide-react";
 import { signOut } from "@/app/actions";
 import { FormButton } from "@/components/form-button";
-const links=[["/dashboard","Dashboard"],["/tasks","Tasks"],["/customers","Customers"],["/invoices","Invoices"],["/inventory","Inventory"],["/employees","Employees"],["/transactions","Finances"],["/analytics","Analytics"],["/calendar","Calendar"],["/notifications","Notifications"],["/activity","Activity"],["/audit","Audit log"],["/assistant","Smart Assistant"],["/settings","Settings"]] as const;
+const links=[["/dashboard","Dashboard"],["/tasks","Tasks"],["/customers","Customers"],["/invoices","Invoices"],["/inventory","Inventory"],["/suppliers","Suppliers"],["/purchasing","Purchasing"],["/payables","Payables"],["/employees","Employees"],["/transactions","Finances"],["/analytics","Analytics"],["/calendar","Calendar"],["/notifications","Notifications"],["/activity","Activity"],["/audit","Audit log"],["/assistant","Smart Assistant"],["/automations","Automations"],["/portal","Portals"],["/barcode","Barcode lookup"],["/settings","Settings"]] as const;
 export function Shell({children,company}:{children:React.ReactNode;company:string}){
  const pathname=usePathname(); const[open,setOpen]=useState(false); const[dark,setDark]=useState(false);
  useEffect(()=>{const v=localStorage.getItem("bizflow-theme")==="dark";setDark(v);document.documentElement.classList.toggle("dark",v)},[]);
