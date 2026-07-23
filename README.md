@@ -81,3 +81,7 @@ V3 adds an executive dashboard, notifications, activity timelines, audit logging
 
 For an existing BizFlow installation, run only `supabase/migrations/007_database_repair.sql`.
 For a fresh Supabase project, run only `supabase/schema.sql`. See `DATABASE-REPAIR-INSTRUCTIONS.txt`.
+
+
+## V4 + V5 Commercial Edition
+Adds suppliers, generated supplier IDs, purchase orders, goods receiving, automatic inventory increases, accounts payable, supplier payments, workflow automations, portal previews, barcode/SKU lookup, and an installable PWA manifest. Run `supabase/migrations/008_v4_v5_commercial.sql` once on an existing V3 database.

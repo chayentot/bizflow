@@ -1,0 +1,10 @@
+BIZFLOW V4 + V5 UPGRADE
+
+1. Upload all files to the GitHub repository root and commit.
+2. In Supabase SQL Editor run ONLY: supabase/migrations/008_v4_v5_commercial.sql
+3. Wait for Vercel to deploy.
+4. Test Suppliers -> Purchasing -> Receive all goods -> Payables.
+5. Test Automations -> create a rule -> Run now.
+6. Test Portal previews and Barcode lookup.
+
+No new environment variables are required. Portal pages are administrator previews, not public login portals. Email sending and real camera barcode scanning are intentionally not enabled because they require a provider/API and browser camera permissions. USB/Bluetooth barcode scanners work through the lookup input.
